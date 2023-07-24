@@ -1,0 +1,567 @@
+---
+title: "Family and Schools Together <br /> Structural Models"
+author: "Jay Jeffries"
+date: "11/14/2022"
+output:
+  rmdformats::robobook:
+    code_folding: show
+    self_contained: true
+    thumbnails: false
+    lightbox: true
+pkgdown:
+  as_is: true  
+---
+
+```{r setup, include = F}
+knitr::opts_chunk$set(echo = T)
+
+library(pacman)
+
+p_load("tidyverse", "lavaan", "skimr", "haven", "survey", "VIM", "semPlot", "tidySEM", "rmdformats", "semTable", 
+       "kableExtra", "htmlTable", "vioplot", install = T)
+
+FASTData <- read_csv("/Users/jayjeffries/Desktop/Longitudinal/SEM/Assignments/Final Project/FAST SEM Project/FASTData_FS.csv")
+
+FASTData$PreTest <- FASTData$SC_pre
+FASTData$Year1 <- FASTData$SC_y1
+FASTData$Year2 <- FASTData$SC_y2
+FASTData$Year3 <- FASTData$SC_y3
+
+long_FASTData <- pivot_longer(
+  FASTData,
+  cols = PreTest:Year3,
+  names_to = "Time",
+  values_to = "SocialCapital",
+)
+
+write.csv(long_FASTData, "/Users/jayjeffries/Desktop/Longitudinal/SEM/Assignments/Final Project/FAST SEM Project/long_FASTData.csv", row.names = T)
+```
+
+# Visualization & Descriptives
+
+```{r, message = F, echo = F, warning = F}
+mean <- base::mean
+
+ggplot(data = subset(long_FASTData, FAST == "FAST Program"), aes(x = Time, y = SocialCapital, group = STUDENTID)) +
+  geom_point(color = "darkgray", size = 1, shape = 3) +
+  stat_smooth(method = "lm", se = FALSE, color = "lightgray", size = .1) +
+  geom_jitter(color = "darkgray", size = .5, shape = 3) +
+  stat_summary(aes(group = 1, color = "Timepoint Average"), geom = "point", fun = mean, shape = 17, size = 5) +
+  scale_color_manual(values = "#FFA500") + 
+  scale_y_continuous(limits = c(1, 4), n.breaks = 4) +
+  geom_smooth(aes(group = 1), method = lm, se = F, color = "black", size = .7) +
+  labs(colour = NULL, title = "Plot of Student Social Capital Across Time, FAST Intervention Group",
+       x = "Timepoint", y = "Social Capital Factor Score", 
+       tag = "Figure 1.") +
+  theme_classic() + 
+  theme(axis.title = element_text(face = "bold"), 
+        plot.title = element_text(face = "bold"))
+
+ggplot(data = subset(long_FASTData, FAST == "Control School"), aes(x = Time, y = SocialCapital, group = STUDENTID)) +
+  geom_point(color = "darkgray", size = 1, shape = 3) +
+  stat_smooth(method = "lm", se = FALSE, color = "lightgray", size = .1) +
+  geom_jitter(color = "darkgray", size = .5, shape = 3) +
+  stat_summary(aes(group = 1, color = "Timepoint Average"), geom = "point", fun = mean, shape = 17, size = 5) +
+  scale_color_manual(values = "#FFA500") + 
+  scale_y_continuous(limits = c(1, 4), n.breaks = 4) +
+  geom_smooth(aes(group = 1), method = lm, se = F, color = "black", size = .7) +
+  labs(colour = NULL, title = "Plot of Student Social Capital Across Time, Control Schools",
+       x = "Timepoint", y = "Social Capital Factor Score", 
+       tag = "Figure 2.") +
+  theme_classic() + 
+  theme(axis.title = element_text(face = "bold"), 
+        plot.title = element_text(face = "bold"))
+
+DescTable = FASTData %>%
+  summarise( 
+    "Social Capital Pre-Test" = round(mean(SC_pre, na.rm = T), 3),
+    "Social Capital Year 1 \n Post-Test" = round(mean(SC_y1, na.rm = T), 3),
+    "Social Capital Year 2 \n Post-Test" = round(mean(SC_y2, na.rm = T), 3),
+    "Social Capital Year 3 \n Post-Test" = round(mean(SC_y3, na.rm = T), 3),
+  )
+
+kable(caption = "Table 1. Social Capital Descriptives", align = 'c', x = DescTable) |>
+  add_header_above(c("Mean Social Capital Factor Score Across Time" = 4)) |>
+  kable_paper("hover", font_size = 13, full_width = T) |>
+  kable_styling(html_font = "serif", row_label_position = "c")
+
+# Trellis plot
+long_FASTData1 <- long_FASTData |>
+  filter(FAST == "FAST Program")
+
+long_FASTData1 <- long_FASTData1 |> drop_na(SocialCapital)
+
+long_FASTData1 <- long_FASTData1 |> 
+  group_by(STUDENTID) |>
+  filter(n() == 4) 
+
+set.seed(13130)
+stu_IDs <- sample(long_FASTData1$STUDENTID, 20, replace = T)
+
+FAST_random <- long_FASTData1 |> filter(STUDENTID %in% stu_IDs)
+
+FAST_random$Timepoint <- ifelse(FAST_random$Time == "PreTest", 0, 
+                                ifelse(FAST_random$Time == "Year1", 1,
+                                       ifelse(FAST_random$Time == "Year2", 2,
+                                              ifelse(FAST_random$Time == "Year3", 3, NA))))
+
+lattice <- ggplot(FAST_random, aes(x = Timepoint, y = SocialCapital)) + 
+  geom_point(shape = 1) + 
+  geom_smooth(method = "lm", color = "orange", se = F) + 
+  facet_wrap(~ STUDENTID, nrow = 4, ncol = 5) + 
+  ylim(0, 4) +
+  ggtitle("Lattice Plot of Student Social Capital Scores \n for n = 20 Random FAST Students") +
+  theme_minimal() + 
+  theme(axis.title = element_text(face = "bold"), 
+        plot.title = element_text(face = "bold")) +
+  theme(text = element_text(family = "Times New Roman"))
+lattice
+
+FASTData_FAST <- FASTData |>
+  filter(FAST == "FAST Program")
+
+vioplot_FAST <- vioplot(FASTData_FAST$SC_pre, FASTData_FAST$SC_y1, FASTData_FAST$SC_y2, FASTData_FAST$SC_y2,
+        col = "white", names=c("Pre-Test", "Year 1", "Year 2", "Year 3"), ylim = c(1, 4),
+        main = "Social Capital Score by Timepoints Violin Plots", xlab= "Timepoint", ylab= "Social Capital")
+vioplot_FAST
+
+FASTData_FAST <- long_FASTData |>
+  filter(FAST == "FAST Program")
+
+ggplot(long_FASTData, aes(x = Time, y = SocialCapital, fill = FAST)) + 
+  geom_violin(aes(color = FAST), trim = FALSE, position = position_dodge(0.9)) +
+  geom_boxplot(aes(color = FAST), width = 0.15, position = position_dodge(0.9)) +
+  scale_fill_manual(values = c("#66545e", "#a39193")) +
+  scale_color_manual(values = c("gray", "gray")) +
+  ggtitle("Violin Plot of Student Social Capital Scores") +
+  theme_minimal() + 
+  theme(axis.title = element_text(face = "bold", size = 12), 
+        plot.title = element_text(face = "bold", size = 12)) +
+  theme(text = element_text(family = "Times New Roman"))
+```
+
+# Modelling
+
+```{r, warning = F}
+pre_SC_lat <- '
+pre_SC =~ 1*P6 + P5 + P3A + P3B + P3C + P4A + P4B + P4C
+pre_SC ~~ NA*pre_SC
+pre_SC ~ 0*1
+
+P3A ~~ P3B + P3C + P4A + P4B + P4C
+P3B ~~ P3C + P4A + P4B + P4C
+P3C ~~ P4A + P4B + P4C
+P4A ~~ P4B + P4C
+P4B ~~ P4C
+'
+
+y1_SC_lat <- '
+y1_SC =~ 1*Q11 + Q10 + Q8A + Q8B + Q8C + Q9A + Q9B + Q9C
+y1_SC ~~ NA*y1_SC
+y1_SC ~ 0*1
+
+Q8A ~~ Q8B + Q8C + Q9A + Q9B + Q9C
+Q8B ~~ Q8C + Q9A + Q9B + Q9C
+Q8C ~~ Q9A + Q9B + Q9C
+Q9A ~~ Q9B + Q9C
+Q9B ~~ Q9C
+'
+
+y2_SC_lat <- '
+y2_SC =~ 1*R6 + R5 + R3A + R3B + R3C + R4A + R4B + R4C
+y2_SC ~~ NA*y2_SC
+y2_SC ~ 0*1
+
+R3A ~~ R3B + R3C + R4A + R4B + R4C
+R3B ~~ R3C + R4A + R4B + R4C
+R3C ~~ R4A + R4B + R4C
+R4A ~~ R4B + R4C
+R4B ~~ R4C
+'
+
+y3_SC_lat <- '
+y3_SC =~ 1*S12A + S11 + S9A + S9B + S9C + S10A + S10B + S10C
+y3_SC ~~ NA*y3_SC
+y3_SC ~ 0*1
+
+S9A ~~ S9B + S9C + S10A + S10B + S10C
+S9B ~~ S9C + S10A + S10B + S10C
+S9C ~~ S10A + S10B + S10C
+S10A ~~ S10B + S10C
+S10B ~~ S10C
+'
+
+covs <- '
+pre_SC ~~ y1_SC + y2_SC + y3_SC
+y1_SC ~~ y2_SC + y3_SC
+y2_SC ~~ y3_SC
+'
+
+meas_mods <- paste(pre_SC_lat, y1_SC_lat, y2_SC_lat, y3_SC_lat, covs)
+fit_LCS <- sem(model = meas_mods, data = FASTData, estimator = "MLR", missing = "ML")
+summary(fit_LCS, fit.measures = T)
+```
+
+## Linear Growth Model
+
+```{r, warning = F}
+model_int <- '
+int =~ 1*SC_pre + 1*SC_y1 + 1*SC_y2 + 1*SC_y3
+'
+
+model_slp <- '
+slp =~ 0*SC_pre + 1*SC_y1 + 2*SC_y2 + 3*SC_y3
+'
+
+linear_model <- paste(model_int, model_slp)
+
+fit_linear <- growth(model = linear_model, data = FASTData, estimator = "MLR", missing = "ML")
+
+fitMeasures(fit_linear, fit.measures = c("chisq", "df", "pvalue", "cfi", "rmsea", "srmr"))
+
+summary(fit_linear, fit.measures = T)
+```
+
+## Shape and Form Growth Model
+
+```{r, warning = F}
+model_form <- '
+slp =~ 0*SC_pre + NA*SC_y1 + NA*SC_y2 + 1*SC_y3
+'
+
+shapeform_model <- paste(model_int, model_form)
+
+fit_shapeform <- growth(model = shapeform_model, data = FASTData, estimator = "MLR", missing = "ML")
+fitMeasures(fit_shapeform, fit.measures = c("chisq", "df", "pvalue", "cfi", "rmsea", "srmr"))
+```
+
+## Quadratic Growth Model
+
+```{r, warning = F}
+model_int <- '
+int =~ 1*SC_pre + 1*SC_y1 + 1*SC_y2 + 1*SC_y3
+'
+
+model_slp <- '
+slp =~ 0*SC_pre + 1*SC_y1 + 2*SC_y2 + 3*SC_y3
+'
+
+model_quad <- '
+quad =~ 0*SC_pre + 1*SC_y1 + 4*SC_y2 + 9*SC_y3
+'
+
+quad_model <- paste(model_int, model_slp, model_quad)
+
+fit_quad <- growth(model = quad_model, data = FASTData, estimator = "MLR", missing = "ML")
+fitMeasures(fit_quad, fit.measures = c("chisq", "df", "pvalue", "cfi", "rmsea", "srmr"))
+```
+
+## Model Comparison
+
+```{r, echo = F}
+mods <- c("Linear" = fit_linear, "Quadratic" = fit_quad, "ShapeForm" = fit_shapeform)
+
+compareLavaan(mods,
+              fitmeas = c("chisq", "df", "pvalue", "cfi", "rmsea", "srmr"), 
+              chidif = T,
+              nesting = "Quadratic > Linear > ShapeForm", 
+              digits = 3)
+```
+
+## Linear Growth Curve Structural Model
+
+```{r, warning = F}
+model_int <- '
+int =~ 1*SC_pre + 1*SC_y1 + 1*SC_y2 + 1*SC_y3
+'
+
+model_slp <- '
+slp =~ 0*SC_pre + 1*SC_y1 + 2*SC_y2 + 3*SC_y3
+'
+
+structural <- '
+slp ~ LUNCH_STATUS + S2B + FAST + ATTENDANCE_PCT + PHQ2 + C3YRSTCH 
+int ~ LUNCH_STATUS + S2B + FAST + ATTENDANCE_PCT + PHQ2 + C3YRSTCH 
+'
+
+linear_model <- paste(model_int, model_slp, structural)
+
+final_linear <- growth(model = linear_model, data = FASTData, estimator = "MLR", missing = "ML")
+
+summary(final_linear, fit.measures = T)
+```
+
+### Unstandardized Solution
+```{r}
+summary(final_linear, standardized = T, fit.measures = T, ci = T)
+```
+
+### Standardized Solution
+```{r}
+standardizedsolution(final_linear, level=.95)
+```
+
+### Linear Growth Curve Structural Model Figure
+```{r}
+prepare_graph(
+  edges = get_edges(final_linear) |> filter(!str_detect(label_results, "Variances")),
+  nodes = get_nodes(final_linear) |> mutate(label = name),
+  layout = get_layout("LUNCH_STATUS", "S2B", "FAST", "ATTENDANCE_PCT", "PHQ2", "C3YRSTCH", 
+                      "", "int", "", "", "slp", "",
+                      "SC_pre", "SC_y1", "", "SC_y2", "", "SC_y3",
+                       rows = 3), text_size = 2.8) |> plot()
+```
+
+# Final Model
+
+## Linear Change Score Structural Model
+
+```{r, warning = F, include = F}
+SC_LCS <- '
+# freed residuals
+SC_pre ~~ SC_pre
+SC_y1 ~~ SC_y1
+SC_y2 ~~ SC_y2
+SC_y3 ~~ SC_y3
+ 
+# fix item means to zero
+SC_pre ~ 0*1
+SC_y1 ~ 0*1
+SC_y2 ~ 0*1
+SC_y3 ~ 0*1
+
+# create phantom variables with loadings of 1
+phant_pre =~ 1*SC_pre
+phant_y1 =~ 1*SC_y1
+phant_y2 =~ 1*SC_y2
+phant_y3 =~ 1*SC_y3
+
+# fix variance of phantom variables to 0
+phant_pre ~~ 0*phant_pre
+phant_y1 ~~ 0*phant_y1
+phant_y2 ~~ 0*phant_y2
+phant_y3 ~~ 0*phant_y3
+
+# fix means of phantom variables to 0
+phant_pre ~ 0*1
+phant_y1 ~ 0*1
+phant_y2 ~ 0*1
+phant_y3 ~ 0*1
+
+# to isolate changes, set autoregressions between phantom variables to 1
+phant_y1 ~ 1*phant_pre
+phant_y2 ~ 1*phant_y1
+phant_y3 ~ 1*phant_y2
+
+# to represent the change, create latent change scores with a loading of 1
+change_prey1 =~ 1*phant_y1
+change_y1y2 =~ 1*phant_y2
+change_y2y3 =~ 1*phant_y3
+
+# set variance of change scores to zero
+change_prey1 ~~ 0*change_prey1
+change_y1y2 ~~ 0*change_y1y2
+change_y2y3 ~~ 0*change_y2y3
+
+# set means of change scores to zero
+change_prey1 ~ 0*1
+change_y1y2 ~ 0*1
+change_y2y3 ~ 0*1
+
+# set the intercept of the trajectory based on the first timepoint
+int =~ 1*phant_pre
+
+# set the slope of the trajectory to indicate the same change between each interval
+slp =~ 1*change_prey1 + 1*change_y1y2 + 1*change_y2y3
+
+# estimate variance of trajectory
+int ~~ int
+slp ~~ slp
+
+# estimate mean of the trajectory
+int ~ 1
+slp ~ 1
+
+# estimate the covariance among parts of the trajectory
+int ~~ slp
+'
+
+struct <- '
+change_prey1 ~ C3YRSTCH + LUNCH_STATUS + S2B + FAST + ATTENDANCE_PCT + PHQ2
+change_y1y2 ~ C3YRSTCH + LUNCH_STATUS + S2B + FAST + ATTENDANCE_PCT + PHQ2
+change_y2y3 ~ C3YRSTCH + LUNCH_STATUS + S2B + FAST + ATTENDANCE_PCT + PHQ2
+'
+
+full_mod <- paste(SC_LCS, struct)
+
+fit_LCS <- sem(model = full_mod, data = FASTData, estimator = "MLR", missing = "ML")
+
+summary(fit_LCS, fit.measures = T)
+```
+
+```{r}
+SC_LCS <- '
+# freed variances
+# pre_SC ~~ NA*pre_SC
+# y1_SC ~~ NA*y1_SC
+# y2_SC ~~ NA*y2_SC
+# y3_SC ~~ NA*y3_SC
+ 
+# fix latent means to zero
+# pre_SC ~ 0*1
+# y1_SC ~ 0*1
+# y2_SC ~ 0*1
+# y3_SC ~ 0*1
+
+# create phantom variables with loadings of 1
+phant_pre =~ 1*pre_SC
+phant_y1 =~ 1*y1_SC
+phant_y2 =~ 1*y2_SC
+phant_y3 =~ 1*y3_SC
+
+# fix variance of phantom variables to 0
+phant_pre ~~ 0*phant_pre
+phant_y1 ~~ 0*phant_y1
+phant_y2 ~~ 0*phant_y2
+phant_y3 ~~ 0*phant_y3
+
+# fix means of phantom variables to 0
+phant_pre ~ 0*1
+phant_y1 ~ 0*1
+phant_y2 ~ 0*1
+phant_y3 ~ 0*1
+
+# to isolate changes, set autoregressions between phantom variables to 1
+phant_y1 ~ 1*phant_pre
+phant_y2 ~ 1*phant_y1
+phant_y3 ~ 1*phant_y2
+
+# to represent the change, create latent change scores with a loading of 1
+change_prey1 =~ 1*phant_y1
+change_y1y2 =~ 1*phant_y2
+change_y2y3 =~ 1*phant_y3
+
+# set variance of change scores to zero
+change_prey1 ~~ 0*change_prey1
+change_y1y2 ~~ 0*change_y1y2
+change_y2y3 ~~ 0*change_y2y3
+
+# set means of change scores to zero
+change_prey1 ~ 0*1
+change_y1y2 ~ 0*1
+change_y2y3 ~ 0*1
+
+# set the intercept of the trajectory based on the first timepoint
+int =~ 1*phant_pre
+
+# set the slope of the trajectory to indicate the same change between each interval
+slp =~ 1*change_prey1 + 1*change_y1y2 + 1*change_y2y3
+
+# estimate variance of trajectory
+int ~~ NA*int
+slp ~~ NA*slp
+
+# estimate mean of the trajectory
+int ~ 1
+slp ~ 1
+
+# estimate the covariance among parts of the trajectory
+int ~~ slp
+'
+
+covs <- '
+pre_SC ~~ y1_SC + y2_SC + y3_SC
+y1_SC ~~ y2_SC + y3_SC
+y2_SC ~~ y3_SC
+'
+
+struct <- '
+change_prey1 ~ C3YRSTCH + LUNCH_STATUS + S2B + FAST + ATTENDANCE_PCT + PHQ2 + phant_pre
+change_y1y2 ~ C3YRSTCH + LUNCH_STATUS + S2B + FAST + ATTENDANCE_PCT + PHQ2 + phant_y1
+change_y2y3 ~ C3YRSTCH + LUNCH_STATUS + S2B + FAST + ATTENDANCE_PCT + PHQ2 + phant_y2
+'
+
+full_mod <- paste(pre_SC_lat, y1_SC_lat, y2_SC_lat, y3_SC_lat, SC_LCS, covs, struct)
+  
+sem(model = full_mod, data = FASTData, estimator = "MLR", missing = "ML")
+
+fit_LCS <- growth(model = full_mod, data = FASTData, estimator = "MLR", missing = "ML")
+
+summary(fit_LCS, fit.measures = T)
+
+std_LCS_output <- standardizedSolution(fit_LCS)
+unstd_LCS_output <- parameterEstimates(fit_LCS)
+
+write.csv(std_LCS_output, "/Users/jayjeffries/Desktop/Longitudinal/SEM/Assignments/Final Project/FAST SEM Project/Standardized_LCS_Output.csv")
+write.csv(std_LCS_output, "/Users/jayjeffries/Desktop/Longitudinal/SEM/Assignments/Final Project/FAST SEM Project/Unstandardized_LCS_Output.csv")
+```
+
+```{r, eval = F, include = F}
+# Not evaluated because these results are in the below table
+summary(fit_LCS, standardized = T, fit.measures = T, ci = T)
+```
+
+### Standardized Solution
+```{r}
+standardizedsolution(fit_LCS, level=.95)
+# Unstandardized solution found below
+```
+
+## Final Model Results
+
+### Unstandardized Solution Table
+```{r}
+semTable(fit_LCS, columns = c("est", "se", "z", "p"), type = "html", print.results = F, 
+         fits = c("npar", "chisq", "df", "pvalue", "chisq.scaled", "df.scaled", "pvalue.scaled", "cfi", 
+                  "rmsea", "srmr")) |>
+  htmlTable()
+```
+
+## Model Figure
+
+### Linear Change Score Structural Model Figure
+```{r}
+prepare_graph(
+  edges = get_edges(fit_LCS) |> filter(!str_detect(label_results, "Variances")),
+  nodes = get_nodes(fit_LCS) |> mutate(label = name),
+  layout = get_layout("int", "", "slp", "", "S2B", "C3YRSTCH", "FAST", "ATTENDANCE_PCT", "", "",  "",
+                      "", "", "", "", "", "", "", "", "", "LUNCH_STATUS", "PHQ2",
+                      "", "", "", "", "", "", "", "", "", "", "",
+                      "", "", "change_prey1", "", "", "change_y1y2", "", "", "change_y2y3", "", "",
+                      "phant_pre", "", "phant_y1", "", "", "phant_y2", "", "", "phant_y3", "", "",
+                      "SC_pre", "", "SC_y1", "", "", "SC_y2", "", "", "SC_y3", "",  "",
+                       rows = 6), spacing_y = 2, spacing_x = 1.5, text_size = 1.4, angle = 170) |> plot()
+```
+
+
+```{r, eval = F, include = F}
+prepare_graph(
+  edges = get_edges(fit_LCS) |> filter(!str_detect(label_results, "Variances")),
+  nodes = get_nodes(fit_LCS) |> mutate(label = name),
+  layout = get_layout(
+                      "int", "", "FAST", "slp", "", "", "",
+                      "", "LUNCH_STATUS", "", "", "PHQ2", "C3YRSTCH", "ATTENDANCE_PCT",
+                      "", "", "", "", "", "", "S2B",
+                      "", "", "change_prey1", "change_y1y2", "change_y2y3", "", "",
+                      "phant_pre", "", "phant_y1", "phant_y2", "phant_y3", "", "",
+                      "Soc_Cap_pre", "", "Soc_Cap_y1", "Soc_Cap_y2", "Soc_Cap_y3", "", "",
+                       rows = 6), spacing_y = 2, spacing_x = 2, text_size = 1.55) |>
+edit_graph({ color = "black" }) |> 
+  if_edit(pval < .05, {color = "blue"}) |>
+  plot()
+
+
+graph <- prepare_graph(
+  edges = get_edges(fit_LCS) |> filter(!str_detect(label_results, "Variances")),
+  nodes = get_nodes(fit_LCS) |> mutate(label = name),
+  layout = get_layout(
+                      "int", "", "FAST", "slp", "", "", "",
+                      "", "LUNCH_STATUS", "", "", "PHQ2", "C3YRSTCH", "ATTENDANCE_PCT",
+                      "", "", "", "", "", "", "S2B",
+                      "", "", "change_prey1", "change_y1y2", "change_y2y3", "", "",
+                      "phant_pre", "", "phant_y1", "phant_y2", "phant_y3", "", "",
+                      "Soc_Cap_pre", "", "Soc_Cap_y1", "Soc_Cap_y2", "Soc_Cap_y3", "", "",
+                       rows = 6), spacing_y = 2, spacing_x = 2, text_size = 1.55)
+nodes(graph)
+```
+

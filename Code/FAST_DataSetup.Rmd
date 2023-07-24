@@ -1,0 +1,85 @@
+---
+title: "Family and Schools Together <br /> Data Setup"
+author: "Jay Jeffries"
+date: "11/13/2022"
+output:
+  rmdformats::robobook:
+    code_folding: show
+    self_contained: true
+    thumbnails: false
+    lightbox: true
+pkgdown:
+  as_is: true    
+---
+
+# Importing Data
+
+```{r setup}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(pacman)
+
+p_load("tidyverse", "skimr", "haven", "rmdformats", "ggplot2", install = T)
+
+FAST_Data <- read_sav("/Users/jayjeffries/Desktop/Longitudinal/SEM/Assignments/Final Project/FAST SEM Project/FAST-Data.sav")
+
+FASTData <- select(FAST_Data, "STUDENTID", "DISTRICTID", "PHOENIX", "Y1SCHOOLID", "Y3SCHOOLID", "FAST", 
+                   "S13A", "S13B", "LUNCH_STATUS", "ATTENDANCE_RATE", "S2B", "C3YRSTCH", # Covariates
+                   "P6", "P5", "P3A", "P3B", "P3C", "P4A", "P4B", "P4C", # Pre-test
+                   "Q11", "Q10", "Q8A", "Q8B", "Q8C", "Q9A", "Q9B", "Q9C", # Year 1 Posttest
+                   "R6", "R5", "R3A", "R3B", "R3C", "R4A", "R4B", "R4C", # Year 2 Posttest
+                   "S12A", "S11", "S9A", "S9B", "S9C", "S10A", "S10B", "S10C", # Year 3 Posttest
+                   ) 
+```
+
+# Variable Creation and Transformation
+
+```{r}
+FASTData$PHQ2 <- FASTData$S13A + FASTData$S13A
+# PHQ-2 composite score
+
+FASTData$ATTENDANCE_RATE <- round(FASTData$ATTENDANCE_RATE, 3)
+FASTData$ATTENDANCE_PCT <- 100*(FASTData$ATTENDANCE_RATE)
+# Transforming attendance proportion to percentage
+
+FASTData$PHOENIX <- factor(FASTData$PHOENIX,
+levels = c(0, 1),
+labels = c("San Antonio School", "Phoenix School"))
+
+FASTData$FAST <- factor(FASTData$FAST,
+levels = c(0, 1),
+labels = c("Control School", "FAST Program"))
+
+FASTData$FR_LUNCH <- ifelse(FASTData$LUNCH_STATUS < 3, 1, 
+                             ifelse(FASTData$LUNCH_STATUS == 3, 0, NA))
+FASTData$FR_LUNCH <- factor(FASTData$FR_LUNCH,
+                             levels = c(0, 1)) # 0 = Full, 1 = Free or Reduced
+```
+
+```{r}
+FASTData_covs <- select(FAST_Data, "S13A", "S13B", "LUNCH_STATUS", "ATTENDANCE_RATE", "S2B", "C3YRSTCH" # Covariates
+                   ) 
+skim_without_charts(FASTData_covs)
+
+FASTData_SC <- select(FAST_Data, "P6", "P5", "P3A", "P3B", "P3C", "P4A", "P4B", "P4C", # Pre-test
+                   "Q11", "Q10", "Q8A", "Q8B", "Q8C", "Q9A", "Q9B", "Q9C", # Year 1 Posttest
+                   "R6", "R5", "R3A", "R3B", "R3C", "R4A", "R4B", "R4C", # Year 2 Posttest
+                   "S12A", "S11", "S9A", "S9B", "S9C", "S10A", "S10B", "S10C", # Year 3 Posttest
+                   ) 
+skim_without_charts(FASTData_SC)
+```
+
+```{r, warning = F, message = F}
+FASTData_SC[,1:32] |> 
+  pivot_longer(everything(), names_to = "vars") |>
+  ggplot(aes(x = value, fill = vars)) +
+  geom_density() + 
+  facet_wrap(~ vars) +
+  theme(legend.position = "none")
+```
+
+# Exporting Data
+
+```{r}
+write.csv(FASTData, "/Users/jayjeffries/Desktop/Longitudinal/SEM/Assignments/Final Project/FAST SEM Project/FASTData.csv", row.names = T)
+```

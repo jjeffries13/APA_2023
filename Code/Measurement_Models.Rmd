@@ -1,0 +1,1069 @@
+---
+title: "Family and Schools Together <br /> Measurement Models"
+author: "Jay Jeffries"
+date: "11/13/2022"
+output:
+  rmdformats::robobook:
+    code_folding: show
+    self_contained: true
+    thumbnails: false
+    lightbox: true
+pkgdown:
+  as_is: true    
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(pacman)
+
+p_load("tidyverse", "lavaan", "skimr", "haven", "semPlot", "tidySEM", "rmdformats", "semTable", "htmlTable",
+       "patchwork",
+       install = T)
+
+FASTData <- read_csv("/Users/jayjeffries/Desktop/Longitudinal/SEM/Assignments/Final Project/FAST SEM Project/FASTData.csv")
+```
+
+# Initial Measurement Model
+## Model Syntax
+
+```{r, warning = F}
+meas_mod <- '
+Soc_Cap =~ Q8A + Q8B + Q8C + Q9A + Q9B + Q9C + Q11 + Q10
+
+Soc_Cap ~~ 1*Soc_Cap
+'
+
+fit_meas <- sem(model = meas_mod, data = FASTData, estimator = "ML", missing = "ML")
+results <- summary(fit_meas, fit.measures = T)
+results
+```
+
+```{r, warning = F, echo = F}
+meas_mod_pre <- '
+SC_pre =~ NA*P6 + lambda1*P6 + lambda2*P5 + lambda3*P3A + lambda4*P3B + lambda5*P3C + lambda6*P4A + lambda7*P4B + lambda8*P4C
+
+SC_pre ~~ SC_pre
+SC_pre ~ 1
+
+P6 ~ int1*1
+P5 ~ int2*1
+P3A ~ int3*1
+P3B ~ int4*1 
+P3C ~ int5*1
+P4A ~ int6*1
+P4B ~ int7*1 
+P4C ~ int8*1
+
+0 == (int1 + int2 + int3 + int4 + int5 + int6 + int7 + int8)/8
+1 == (lambda1 + lambda2 + lambda3 + lambda4 + lambda5 + lambda6 + lambda7 + lambda8)/8
+
+# Covariances between relational trust items
+P3A ~~ P3B + P3C + P4A + P4B + P4C 
+P3B ~~ P3C + P4A + P4B + P4C 
+P3C ~~ P4A + P4B + P4C 
+P4A ~~ P4B + P4C 
+P4B ~~ P4C
+'
+#fit_meas_pre <- sem(model = meas_mod_pre, data = FASTData, estimator = "ML", missing = "ML")
+#summary(fit_meas_pre, fit.measures = T)
+
+meas_mod_y1 <- '
+SC_y1 =~ NA*Q11 + lambda9*Q11 + lambda10*Q10 + lambda11*Q8A + lambda12*Q8B + lambda13*Q8C + lambda14*Q9A + lambda15*Q9B + lambda16*Q9C
+
+SC_y1 ~~ SC_y1
+SC_y1 ~ 1
+
+Q8A ~ int9*1
+Q8B ~ int10*1
+Q8C ~ int11*1
+Q9A ~ int12*1 
+Q9B ~ int13*1
+Q9C ~ int14*1
+Q11 ~ int15*1 
+Q10 ~ int16*1
+0 == (int9 + int10 + int11 + int12 + int13 + int14 + int15 + int16)/8
+1 == (lambda9 + lambda10 + lambda11 + lambda12 + lambda13 + lambda14 + lambda15 + lambda16)/8
+
+# Covariances between relational trust items
+Q8A ~~ Q8B + Q8C + Q9A + Q9B + Q9C 
+Q8B ~~ Q8C + Q9A + Q9B + Q9C 
+Q8C ~~ Q9A + Q9B + Q9C 
+Q9A ~~ Q9B + Q9C 
+Q9B ~~ Q9C
+'
+#fit_meas_y1 <- sem(model = meas_mod_y1, data = FASTData, estimator = "ML", missing = "ML")
+#summary(fit_meas_y1, fit.measures = T)
+
+meas_mod_y2 <- '
+SC_y2 =~ NA*R6 + lambda17*R6 + lambda18*R5 + lambda19*R3A + lambda20*R3B + lambda21*R3C + lambda22*R4A + lambda23*R4B + lambda24*R4C
+
+SC_y2 ~~ SC_y2
+SC_y2 ~ 1
+
+R6 ~ int17*1
+R5 ~ int18*1
+R3A ~ int19*1
+R3B ~ int20*1 
+R3C ~ int21*1
+R4A ~ int22*1
+R4B ~ int23*1 
+R4C ~ int24*1
+0 == (int17 + int18 + int19 + int20 + int21 + int22 + int23 + int24)/8
+1 == (lambda17 + lambda18 + lambda19 + lambda20 + lambda21 + lambda22 + lambda23 + lambda24)/8
+
+# Covariances between relational trust items
+R3A ~~ R3B + R3C + R4A + R4B + R4C 
+R3B ~~ R3C + R4A + R4B + R4C 
+R3C ~~ R4A + R4B + R4C 
+R4A ~~ R4B + R4C 
+R4B ~~ R4C
+'
+#fit_meas_y2 <- sem(model = meas_mod_y2, data = FASTData, estimator = "ML", missing = "ML")
+#summary(fit_meas_y2, fit.measures = T)
+
+meas_mod_y3 <- '
+SC_y3 =~ NA*S12A + lambda25*S12A + lambda26*S11 + lambda27*S9A + lambda28*S9B + lambda29*S9C + lambda30*S10A + lambda31*S10B + lambda32*S10C
+
+SC_y3 ~~ SC_y3
+SC_y3 ~ 1
+
+S12A ~ int25*1
+S11 ~ int26*1
+S9A ~ int27*1
+S9B ~ int28*1 
+S9C ~ int29*1
+S10A ~ int30*1
+S10B ~ int31*1 
+S10C ~ int32*1
+0 == (int25 + int26 + int27 + int28 + int29 + int30 + int31 + int32)/8
+1 == (lambda25 + lambda26 + lambda27 + lambda28 + lambda29 + lambda30 + lambda31 + lambda32)/8
+
+# Covariances between relational trust items
+S9A ~~ S9B + S9C + S10A + S10B + S10C 
+S9B ~~ S9C + S10A + S10B + S10C 
+S9C ~~ S10A + S10B + S10C 
+S10A ~~ S10B + S10C 
+S10B ~~ S10C
+'
+
+fit_measure_mod_pre <- sem(model = meas_mod_pre, data = FASTData, estimator = "MLR", missing = "ML")
+fit_measure_mod_y1 <- sem(model = meas_mod_y1, data = FASTData, estimator = "MLR", missing = "ML")
+fit_measure_mod_y2 <- sem(model = meas_mod_y2, data = FASTData, estimator = "MLR", missing = "ML")
+fit_measure_mod_y3 <- sem(model = meas_mod_y3, data = FASTData, estimator = "MLR", missing = "ML")
+
+semTable(fit_measure_mod_pre, columns = c("est", "se", "z", "p", "rsquare"), type = "html", print.results = F, 
+         fits = c("npar", "chisq", "df", "pvalue", "chisq.scaled", "df.scaled", "pvalue.scaled", "cfi", 
+                  "rmsea", "srmr")) |>
+  htmlTable()
+semTable(fit_measure_mod_y1, columns = c("est", "se", "z", "p", "rsquare"), type = "html", print.results = F, 
+         fits = c("npar", "chisq", "df", "pvalue", "chisq.scaled", "df.scaled", "pvalue.scaled", "cfi", 
+                  "rmsea", "srmr")) |>
+  htmlTable()
+semTable(fit_measure_mod_y2, columns = c("est", "se", "z", "p", "rsquare"), type = "html", print.results = F, 
+         fits = c("npar", "chisq", "df", "pvalue", "chisq.scaled", "df.scaled", "pvalue.scaled", "cfi", 
+                  "rmsea", "srmr")) |>
+  htmlTable()
+semTable(fit_measure_mod_y3, columns = c("est", "se", "z", "p", "rsquare"), type = "html", print.results = F, 
+         fits = c("npar", "chisq", "df", "pvalue", "chisq.scaled", "df.scaled", "pvalue.scaled", "cfi", 
+                  "rmsea", "srmr")) |>
+  htmlTable()
+```
+
+## Mod Indices
+
+```{r}
+modindices(fit_meas, sort = T)
+```
+
+## Measurement Model Figure
+
+```{r, echo = F}
+prepare_graph(
+  edges = get_edges(fit_measure_mod_y1) |> filter(!str_detect(label_results, "WITH")),
+  nodes = get_nodes(fit_measure_mod_y1) |> mutate(label = name), 
+  layout = get_layout("", "", "", "", "SC_y1", "","", "",
+                      "Q8A", "Q8B", "Q8C", "Q9A", "Q9B", "Q9C", "Q11", "Q10", rows = 2), 
+  spacing_y = 2, spacing_x = 1.6, text_size = 1.7, angle = 170, 
+  ellipse_width = 5, variance_diameter = .25) |> 
+  edit_graph({label = paste(est_sig_std, "\n", confint_std) }) |>
+  edit_graph({label = paste(name, "\n", est_sig_std, "\n", confint_std) }, element = "nodes") |>
+  plot()
+```
+
+## Tau-Equivalence Test
+
+```{r, warning = F}
+congeneric_mod <- '
+Soc_Cap =~ NA*Q8A + Q8B + Q8C + Q9A + Q9B + Q9C + Q11 + Q10
+
+Soc_Cap ~~ 1*Soc_Cap
+
+# Covariances between relational trust items
+Q8A ~~ Q8B + Q8C + Q9A + Q9B + Q9C 
+Q8B ~~ Q8C + Q9A + Q9B + Q9C 
+Q8C ~~ Q9A + Q9B + Q9C 
+Q9A ~~ Q9B + Q9C 
+Q9B ~~ Q9C 
+'
+
+tau_mod <- '
+Soc_Cap =~ equal*Q8A + equal*Q8B + equal*Q8C + equal*Q9A + equal*Q9B + equal*Q9C + equal*Q11 + equal*Q10
+
+Soc_Cap ~~ 1*Soc_Cap
+
+# Covariances between relational trust items
+Q8A ~~ Q8B + Q8C + Q9A + Q9B + Q9C 
+Q8B ~~ Q8C + Q9A + Q9B + Q9C 
+Q8C ~~ Q9A + Q9B + Q9C 
+Q9A ~~ Q9B + Q9C 
+Q9B ~~ Q9C 
+'
+```
+
+```{r, include = F}
+fit_cong <- sem(model = congeneric_mod, data = FASTData, estimator = "ML", missing = "ML")
+fit_tau <- sem(model = tau_mod, data = FASTData, estimator = "ML", missing = "ML")
+
+summary(fit_cong, fit.measures = T)
+summary(fit_tau, fit.measures = T)
+```
+
+```{r}
+anova(fit_cong, fit_tau)
+```
+
+## Tau-Equivalence Results
+
+The significant difference in model, where the tau-equivalent model fit worse in comparison to the congeneric model ($\chi^2_{tau}(13)=781.953$, $\chi^2_{cong}(5)=18.191$, $\triangle\chi^2=745.762$, $\triangle df=8,  p < .001$), indicates that a latent variable would be preferable to aggregated scores. This also means that a key assumption of Cronbach’s alpha is not met.
+
+# Measurement Invariance
+
+## Configural Invariance Test
+
+```{r, warning = F, echo = F}
+covs <- '
+P6 ~~ Q11 + R6 + S12A
+Q11 ~~ R6 + S12A
+R6 ~~ S12A
+
+P5 ~~ Q10 + R5 + S11
+Q10 ~~ R5 + S11
+R5 ~~ S11
+
+P3A ~~ Q8A + R3A + S9A
+Q8A ~~ R3A + S9A
+R3A ~~ S9A
+
+P3B ~~ Q8B + R3B + S9B
+Q8B ~~ R3B + S9B
+R3B ~~ S9B
+
+P3C ~~ Q8C + R3C + S9C
+Q8C ~~ R3C + S9C
+R3C ~~ S9C
+
+P4A ~~ Q9A + R4A + S10A
+Q9A ~~ R4A + S10A
+R4A ~~ S10A
+
+P4B ~~ Q9B + R4B + S10B
+Q9B ~~ R4B + S10B
+R4B ~~ S10B
+
+P4C ~~ Q9C + R4C + S10C
+Q9C ~~ R4C + S10C
+R4C ~~ S10C
+
+SC_pre ~~ SC_y1 + SC_y2 + SC_y3
+SC_y1 ~~ SC_y2 + SC_y3
+SC_y2 ~~ SC_y3
+'
+#fit_meas_y3 <- sem(model = meas_mod_y3, data = FASTData, estimator = "ML", missing = "ML")
+#summary(fit_meas, fit.measures = T)
+
+configural <- paste(meas_mod_pre, meas_mod_y1, meas_mod_y2, meas_mod_y3, covs)
+```
+
+```{r, warning = F}
+fit_configural <- sem(model = configural, data = FASTData, estimator = "ML", missing = "ML")
+fitMeasures(fit_configural, fit.measures = c("chisq", "df", "pvalue", "cfi", "rmsea", "srmr"))
+```
+
+## Weak Invariance Model
+```{r, warning = F}
+weak_meas_mod <- '
+SC_pre =~ NA*P6 + lambda1*P6 + lambda2*P5 + lambda3*P3A + lambda4*P3B + lambda5*P3C + lambda6*P4A + lambda7*P4B + lambda8*P4C
+
+SC_pre ~~ SC_pre
+SC_pre ~ 1
+
+P6 ~ int1*1
+P5 ~ int2*1
+P3A ~ int3*1
+P3B ~ int4*1 
+P3C ~ int5*1
+P4A ~ int6*1
+P4B ~ int7*1 
+P4C ~ int8*1
+
+0 == (int1 + int2 + int3 + int4 + int5 + int6 + int7 + int8)/8
+1 == (lambda1 + lambda2 + lambda3 + lambda4 + lambda5 + lambda6 + lambda7 + lambda8)/8
+
+# Covariances between relational trust items
+P3A ~~ P3B + P3C + P4A + P4B + P4C 
+P3B ~~ P3C + P4A + P4B + P4C 
+P3C ~~ P4A + P4B + P4C 
+P4A ~~ P4B + P4C 
+P4B ~~ P4C
+
+SC_y1 =~ NA*Q11 + lambda1*Q11 + lambda2*Q10 + lambda3*Q8A + lambda4*Q8B + lambda5*Q8C + lambda6*Q9A + lambda7*Q9B + lambda8*Q9C
+
+SC_y1 ~~ SC_y1
+SC_y1 ~ 1
+
+Q8A ~ int9*1
+Q8B ~ int10*1
+Q8C ~ int11*1
+Q9A ~ int12*1 
+Q9B ~ int13*1
+Q9C ~ int14*1
+Q11 ~ int15*1 
+Q10 ~ int16*1
+0 == (int9 + int10 + int11 + int12 + int13 + int14 + int15 + int16)/8
+
+# Covariances between relational trust items
+Q8A ~~ Q8B + Q8C + Q9A + Q9B + Q9C 
+Q8B ~~ Q8C + Q9A + Q9B + Q9C 
+Q8C ~~ Q9A + Q9B + Q9C 
+Q9A ~~ Q9B + Q9C 
+Q9B ~~ Q9C
+
+SC_y2 =~ NA*R6 + lambda1*R6 + lambda2*R5 + lambda3*R3A + lambda4*R3B + lambda5*R3C + lambda6*R4A + lambda7*R4B + lambda8*R4C
+
+SC_y2 ~~ SC_y2
+SC_y2 ~ 1
+
+R6 ~ int17*1
+R5 ~ int18*1
+R3A ~ int19*1
+R3B ~ int20*1 
+R3C ~ int21*1
+R4A ~ int22*1
+R4B ~ int23*1 
+R4C ~ int24*1
+0 == (int17 + int18 + int19 + int20 + int21 + int22 + int23 + int24)/8
+
+# Covariances between relational trust items
+R3A ~~ R3B + R3C + R4A + R4B + R4C 
+R3B ~~ R3C + R4A + R4B + R4C 
+R3C ~~ R4A + R4B + R4C 
+R4A ~~ R4B + R4C 
+R4B ~~ R4C
+
+SC_y3 =~ NA*S12A + lambda1*S12A + lambda2*S11 + lambda3*S9A + lambda4*S9B + lambda5*S9C + lambda6*S10A + lambda7*S10B + lambda8*S10C
+
+SC_y3 ~~ SC_y3
+SC_y3 ~ 1
+
+S12A ~ int25*1
+S11 ~ int26*1
+S9A ~ int27*1
+S9B ~ int28*1 
+S9C ~ int29*1
+S10A ~ int30*1
+S10B ~ int31*1 
+S10C ~ int32*1
+0 == (int25 + int26 + int27 + int28 + int29 + int30 + int31 + int32)/8
+
+# Covariances between relational trust items
+S9A ~~ S9B + S9C + S10A + S10B + S10C 
+S9B ~~ S9C + S10A + S10B + S10C 
+S9C ~~ S10A + S10B + S10C 
+S10A ~~ S10B + S10C 
+S10B ~~ S10C
+'
+
+covs <- '
+P6 ~~ Q11 + R6 + S12A
+Q11 ~~ R6 + S12A
+R6 ~~ S12A
+
+P5 ~~ Q10 + R5 + S11
+Q10 ~~ R5 + S11
+R5 ~~ S11
+
+P3A ~~ Q8A + R3A + S9A
+Q8A ~~ R3A + S9A
+R3A ~~ S9A
+
+P3B ~~ Q8B + R3B + S9B
+Q8B ~~ R3B + S9B
+R3B ~~ S9B
+
+P3C ~~ Q8C + R3C + S9C
+Q8C ~~ R3C + S9C
+R3C ~~ S9C
+
+P4A ~~ Q9A + R4A + S10A
+Q9A ~~ R4A + S10A
+R4A ~~ S10A
+
+P4B ~~ Q9B + R4B + S10B
+Q9B ~~ R4B + S10B
+R4B ~~ S10B
+
+P4C ~~ Q9C + R4C + S10C
+Q9C ~~ R4C + S10C
+R4C ~~ S10C
+
+SC_pre ~~ SC_y1 + SC_y2 + SC_y3
+SC_y1 ~~ SC_y2 + SC_y3
+SC_y2 ~~ SC_y3
+'
+#fit_meas_y3 <- sem(model = meas_mod_y3, data = FASTData, estimator = "ML", missing = "ML")
+#summary(fit_meas, fit.measures = T)
+
+weak <- paste(weak_meas_mod, covs)
+```
+
+```{r, warning = F}
+fit_weak <- sem(model = weak, data = FASTData, estimator = "ML", missing = "ML")
+
+fitMeasures(fit_weak, fit.measures = c("chisq", "df", "pvalue", "cfi", "rmsea", "srmr"))
+```
+
+## Strong Invariance Model
+```{r, warning = F}
+strong_meas_mod <- '
+SC_pre =~ NA*P6 + lambda1*P6 + lambda2*P5 + lambda3*P3A + lambda4*P3B + lambda5*P3C + lambda6*P4A + lambda7*P4B + lambda8*P4C
+
+SC_pre ~~ SC_pre
+SC_pre ~ 1
+
+P6 ~ int1*1
+P5 ~ int2*1
+P3A ~ int3*1
+P3B ~ int4*1 
+P3C ~ int5*1
+P4A ~ int6*1
+P4B ~ int7*1 
+P4C ~ int8*1
+
+0 == (int1 + int2 + int3 + int4 + int5 + int6 + int7 + int8)/8
+
+# Covariances between relational trust items
+P3A ~~ P3B + P3C + P4A + P4B + P4C 
+P3B ~~ P3C + P4A + P4B + P4C 
+P3C ~~ P4A + P4B + P4C 
+P4A ~~ P4B + P4C 
+P4B ~~ P4C
+
+SC_y1 =~ NA*Q11 + lambda1*Q11 + lambda2*Q10 + lambda3*Q8A + lambda4*Q8B + lambda5*Q8C + lambda6*Q9A + lambda7*Q9B + lambda8*Q9C
+
+SC_y1 ~~ SC_y1
+SC_y1 ~ 1
+
+Q11 ~ int1*1 
+Q10 ~ int2*1
+Q8A ~ int3*1
+Q8B ~ int4*1
+Q8C ~ int5*1
+Q9A ~ int6*1 
+Q9B ~ int7*1
+Q9C ~ int8*1
+
+# Covariances between relational trust items
+Q8A ~~ Q8B + Q8C + Q9A + Q9B + Q9C 
+Q8B ~~ Q8C + Q9A + Q9B + Q9C 
+Q8C ~~ Q9A + Q9B + Q9C 
+Q9A ~~ Q9B + Q9C 
+Q9B ~~ Q9C
+
+SC_y2 =~ NA*R6 + lambda1*R6 + lambda2*R5 + lambda3*R3A + lambda4*R3B + lambda5*R3C + lambda6*R4A + lambda7*R4B + lambda8*R4C
+
+SC_y2 ~~ SC_y2
+SC_y2 ~ 1
+
+R6 ~ int1*1
+R5 ~ int2*1
+R3A ~ int3*1
+R3B ~ int4*1 
+R3C ~ int5*1
+R4A ~ int6*1
+R4B ~ int7*1 
+R4C ~ int8*1
+
+# Covariances between relational trust items
+R3A ~~ R3B + R3C + R4A + R4B + R4C 
+R3B ~~ R3C + R4A + R4B + R4C 
+R3C ~~ R4A + R4B + R4C 
+R4A ~~ R4B + R4C 
+R4B ~~ R4C
+
+SC_y3 =~ NA*S12A + lambda1*S12A + lambda2*S11 + lambda3*S9A + lambda4*S9B + lambda5*S9C + lambda6*S10A + lambda7*S10B + lambda8*S10C
+
+SC_y3 ~~ SC_y3
+SC_y3 ~ 1
+
+S12A ~ int1*1
+S11 ~ int2*1
+S9A ~ int3*1
+S9B ~ int4*1 
+S9C ~ int5*1
+S10A ~ int6*1
+S10B ~ int7*1 
+S10C ~ int8*1
+
+# Covariances between relational trust items
+S9A ~~ S9B + S9C + S10A + S10B + S10C 
+S9B ~~ S9C + S10A + S10B + S10C 
+S9C ~~ S10A + S10B + S10C 
+S10A ~~ S10B + S10C 
+S10B ~~ S10C
+'
+
+covs <- '
+P6 ~~ Q11 + R6 + S12A
+Q11 ~~ R6 + S12A
+R6 ~~ S12A
+
+P5 ~~ Q10 + R5 + S11
+Q10 ~~ R5 + S11
+R5 ~~ S11
+
+P3A ~~ Q8A + R3A + S9A
+Q8A ~~ R3A + S9A
+R3A ~~ S9A
+
+P3B ~~ Q8B + R3B + S9B
+Q8B ~~ R3B + S9B
+R3B ~~ S9B
+
+P3C ~~ Q8C + R3C + S9C
+Q8C ~~ R3C + S9C
+R3C ~~ S9C
+
+P4A ~~ Q9A + R4A + S10A
+Q9A ~~ R4A + S10A
+R4A ~~ S10A
+
+P4B ~~ Q9B + R4B + S10B
+Q9B ~~ R4B + S10B
+R4B ~~ S10B
+
+P4C ~~ Q9C + R4C + S10C
+Q9C ~~ R4C + S10C
+R4C ~~ S10C
+
+SC_pre ~~ SC_y1 + SC_y2 + SC_y3
+SC_y1 ~~ SC_y2 + SC_y3
+SC_y2 ~~ SC_y3
+'
+#fit_meas_y3 <- sem(model = meas_mod_y3, data = FASTData, estimator = "ML", missing = "ML")
+#summary(fit_meas, fit.measures = T)
+
+strong <- paste(strong_meas_mod, covs)
+```
+
+## Partially Strong Invariance Model
+```{r, warning = F}
+partial_strong_mod <- '
+SC_pre =~ NA*P6 + lambda1*P6 + lambda2*P5 + lambda3*P3A + lambda4*P3B + lambda5*P3C + lambda6*P4A + lambda7*P4B + lambda8*P4C
+
+SC_pre ~~ 1*SC_pre
+SC_pre ~ 1
+
+P6 ~ 1
+P5 ~ 1
+P3A ~ 1
+P3B ~ 1 
+P3C ~ 1
+P4A ~ 1
+P4B ~ int7*1 
+P4C ~ int8*1
+
+# Covariances between relational trust items
+P3A ~~ P3B + P3C + P4A + P4B + P4C 
+P3B ~~ P3C + P4A + P4B + P4C 
+P3C ~~ P4A + P4B + P4C 
+P4A ~~ P4B + P4C 
+P4B ~~ P4C
+
+SC_y1 =~ NA*Q11 + lambda1*Q11 + lambda2*Q10 + lambda3*Q8A + lambda4*Q8B + lambda5*Q8C + lambda6*Q9A + lambda7*Q9B + lambda8*Q9C
+
+SC_y1 ~~ 1*SC_y1
+SC_y1 ~ 1
+
+Q8A ~ 1
+Q8B ~ 1
+Q8C ~ 1
+Q9A ~ 1 
+Q9B ~ 1
+Q9C ~ 1
+Q11 ~ int7*1 
+Q10 ~ int8*1
+
+# Covariances between relational trust items
+Q8A ~~ Q8B + Q8C + Q9A + Q9B + Q9C 
+Q8B ~~ Q8C + Q9A + Q9B + Q9C 
+Q8C ~~ Q9A + Q9B + Q9C 
+Q9A ~~ Q9B + Q9C 
+Q9B ~~ Q9C
+
+SC_y2 =~ NA*R6 + lambda1*R6 + lambda2*R5 + lambda3*R3A + lambda4*R3B + lambda5*R3C + lambda6*R4A + lambda7*R4B + lambda8*R4C
+
+SC_y2 ~~ 1*SC_y2
+SC_y2 ~ 1
+
+R6 ~ 1
+R5 ~ 1
+R3A ~ 1
+R3B ~ 1 
+R3C ~ 1
+R4A ~ 1
+R4B ~ int7*1 
+R4C ~ int8*1
+
+# Covariances between relational trust items
+R3A ~~ R3B + R3C + R4A + R4B + R4C 
+R3B ~~ R3C + R4A + R4B + R4C 
+R3C ~~ R4A + R4B + R4C 
+R4A ~~ R4B + R4C 
+R4B ~~ R4C
+
+SC_y3 =~ NA*S12A + lambda1*S12A + lambda2*S11 + lambda3*S9A + lambda4*S9B + lambda5*S9C + lambda6*S10A + lambda7*S10B + lambda8*S10C
+
+SC_y3 ~~ 1*SC_y3
+SC_y3 ~ 1
+
+S12A ~ 1
+S11 ~ 1
+S9A ~ 1
+S9B ~ 1 
+S9C ~ 1
+S10A ~ 1
+S10B ~ int7*1 
+S10C ~ int8*1
+
+# Covariances between relational trust items
+S9A ~~ S9B + S9C + S10A + S10B + S10C 
+S9B ~~ S9C + S10A + S10B + S10C 
+S9C ~~ S10A + S10B + S10C 
+S10A ~~ S10B + S10C 
+S10B ~~ S10C
+'
+
+covs <- '
+P6 ~~ Q11 + R6 + S12A
+Q11 ~~ R6 + S12A
+R6 ~~ S12A
+
+P5 ~~ Q10 + R5 + S11
+Q10 ~~ R5 + S11
+R5 ~~ S11
+
+P3A ~~ Q8A + R3A + S9A
+Q8A ~~ R3A + S9A
+R3A ~~ S9A
+
+P3B ~~ Q8B + R3B + S9B
+Q8B ~~ R3B + S9B
+R3B ~~ S9B
+
+P3C ~~ Q8C + R3C + S9C
+Q8C ~~ R3C + S9C
+R3C ~~ S9C
+
+P4A ~~ Q9A + R4A + S10A
+Q9A ~~ R4A + S10A
+R4A ~~ S10A
+
+P4B ~~ Q9B + R4B + S10B
+Q9B ~~ R4B + S10B
+R4B ~~ S10B
+
+P4C ~~ Q9C + R4C + S10C
+Q9C ~~ R4C + S10C
+R4C ~~ S10C
+
+SC_pre ~~ SC_y1 + SC_y2 + SC_y3
+SC_y1 ~~ SC_y2 + SC_y3
+SC_y2 ~~ SC_y3
+'
+#fit_meas_y3 <- sem(model = meas_mod_y3, data = FASTData, estimator = "ML", missing = "ML")
+#summary(fit_meas, fit.measures = T)
+
+partial <- paste(partial_strong_mod, covs)
+```
+
+
+## Partial Strong Invariance
+
+```{r, warning = F, eval = F}
+partial_strong_mod <- '
+SC_pre =~ NA*P6 + lambda1*P6 + lambda2*P5 + lambda3*P3A + lambda4*P3B + lambda5*P3C + lambda6*P4A + lambda7*P4B + lambda8*P4C
+
+SC_pre ~~ SC_pre
+SC_pre ~ 1
+
+P6 ~ NA*1
+P5 ~ NA*1
+P3A ~ NA*1
+P3B ~ NA*1 
+P3C ~ NA*1
+P4A ~ NA*1
+P4B ~ int7*1 
+P4C ~ int8*1
+
+0 == (int7 + int8)/2
+
+# Covariances between relational trust items
+P3A ~~ P3B + P3C + P4A + P4B + P4C 
+P3B ~~ P3C + P4A + P4B + P4C 
+P3C ~~ P4A + P4B + P4C 
+P4A ~~ P4B + P4C 
+P4B ~~ P4C
+
+SC_y1 =~ NA*Q11 + lambda1*Q11 + lambda2*Q10 + lambda3*Q8A + lambda4*Q8B + lambda5*Q8C + lambda6*Q9A + lambda7*Q9B + lambda8*Q9C
+
+SC_y1 ~~ SC_y1
+SC_y1 ~ 1
+
+Q11 ~ NA*1 
+Q10 ~ NA*1
+Q8A ~ NA*1
+Q8B ~ NA*1
+Q8C ~ NA*1
+Q9A ~ NA*1 
+Q9B ~ int7*1
+Q9C ~ int8*1
+
+# Covariances between relational trust items
+Q8A ~~ Q8B + Q8C + Q9A + Q9B + Q9C 
+Q8B ~~ Q8C + Q9A + Q9B + Q9C 
+Q8C ~~ Q9A + Q9B + Q9C 
+Q9A ~~ Q9B + Q9C 
+Q9B ~~ Q9C
+
+SC_y2 =~ NA*R6 + lambda1*R6 + lambda2*R5 + lambda3*R3A + lambda4*R3B + lambda5*R3C + lambda6*R4A + lambda7*R4B + lambda8*R4C
+
+SC_y2 ~~ SC_y2
+SC_y2 ~ 1
+
+R6 ~ NA*1
+R5 ~ NA*1
+R3A ~ NA*1
+R3B ~ NA*1 
+R3C ~ NA*1
+R4A ~ NA*1
+R4B ~ int7*1 
+R4C ~ int8*1
+
+# Covariances between relational trust items
+R3A ~~ R3B + R3C + R4A + R4B + R4C 
+R3B ~~ R3C + R4A + R4B + R4C 
+R3C ~~ R4A + R4B + R4C 
+R4A ~~ R4B + R4C 
+R4B ~~ R4C
+
+SC_y3 =~ NA*S12A + lambda1*S12A + lambda2*S11 + lambda3*S9A + lambda4*S9B + lambda5*S9C + lambda6*S10A + lambda7*S10B + lambda8*S10C
+
+SC_y3 ~~ SC_y3
+SC_y3 ~ 1
+
+S12A ~ NA*1
+S11 ~ NA*1
+S9A ~ NA*1
+S9B ~ NA*1 
+S9C ~ NA*1
+S10A ~ NA*1
+S10B ~ int7*1 
+S10C ~ int8*1
+
+# Covariances between relational trust items
+S9A ~~ S9B + S9C + S10A + S10B + S10C 
+S9B ~~ S9C + S10A + S10B + S10C 
+S9C ~~ S10A + S10B + S10C 
+S10A ~~ S10B + S10C 
+S10B ~~ S10C
+'
+
+covs <- '
+P6 ~~ Q11 + R6 + S12A
+Q11 ~~ R6 + S12A
+R6 ~~ S12A
+
+P5 ~~ Q10 + R5 + S11
+Q10 ~~ R5 + S11
+R5 ~~ S11
+
+P3A ~~ Q8A + R3A + S9A
+Q8A ~~ R3A + S9A
+R3A ~~ S9A
+
+P3B ~~ Q8B + R3B + S9B
+Q8B ~~ R3B + S9B
+R3B ~~ S9B
+
+P3C ~~ Q8C + R3C + S9C
+Q8C ~~ R3C + S9C
+R3C ~~ S9C
+
+P4A ~~ Q9A + R4A + S10A
+Q9A ~~ R4A + S10A
+R4A ~~ S10A
+
+P4B ~~ Q9B + R4B + S10B
+Q9B ~~ R4B + S10B
+R4B ~~ S10B
+
+P4C ~~ Q9C + R4C + S10C
+Q9C ~~ R4C + S10C
+R4C ~~ S10C
+
+SC_pre ~~ SC_y1 + SC_y2 + SC_y3
+SC_y1 ~~ SC_y2 + SC_y3
+SC_y2 ~~ SC_y3
+'
+#fit_meas_y3 <- sem(model = meas_mod_y3, data = FASTData, estimator = "ML", missing = "ML")
+#summary(fit_meas, fit.measures = T)
+
+strong <- paste(partial_strong_mod, covs)
+fit_strong <- sem(model = strong, data = FASTData, estimator = "ML", missing = "ML")
+
+summary(fit_strong)
+
+models <- c("Configural" = fit_configural, "Weak" = fit_weak, "Strong" = fit_strong)
+
+compareLavaan(models,
+              fitmeas = c("chisq", "df", "pvalue", "cfi", "rmsea", "srmr"), 
+              chidif = T,
+              nesting = "Configural > Weak > Strong", 
+              digits = 3)
+```
+
+```{r, warning = F, eval = F}
+partial_strong_mod <- '
+SC_pre =~ NA*P6 + lambda1*P6 + lambda2*P5 + lambda3*P3A + lambda4*P3B + lambda5*P3C + lambda6*P4A + lambda7*P4B + lambda8*P4C
+
+SC_pre ~~ 1*SC_pre
+SC_pre ~ NA*1
+
+P6 ~ NA*1
+P5 ~ NA*1
+P3A ~ NA*1
+P3B ~ NA*1 
+P3C ~ NA*1
+P4A ~ NA*1
+P4B ~ NA*1 
+P4C ~ int8*1
+
+# Covariances between relational trust items
+P3A ~~ P3B + P3C + P4A + P4B + P4C 
+P3B ~~ P3C + P4A + P4B + P4C 
+P3C ~~ P4A + P4B + P4C 
+P4A ~~ P4B + P4C 
+P4B ~~ P4C
+
+SC_y1 =~ NA*Q11 + lambda1*Q11 + lambda2*Q10 + lambda3*Q8A + lambda4*Q8B + lambda5*Q8C + lambda6*Q9A + lambda7*Q9B + lambda8*Q9C
+
+SC_y1 ~~ 1*SC_y1
+SC_y1 ~ 1
+
+Q11 ~ NA*1 
+Q10 ~ NA*1
+Q8A ~ NA*1
+Q8B ~ NA*1
+Q8C ~ NA*1
+Q9A ~ NA*1 
+Q9B ~ NA*1
+Q9C ~ int8*1
+
+# Covariances between relational trust items
+Q8A ~~ Q8B + Q8C + Q9A + Q9B + Q9C 
+Q8B ~~ Q8C + Q9A + Q9B + Q9C 
+Q8C ~~ Q9A + Q9B + Q9C 
+Q9A ~~ Q9B + Q9C 
+Q9B ~~ Q9C
+
+SC_y2 =~ NA*R6 + lambda1*R6 + lambda2*R5 + lambda3*R3A + lambda4*R3B + lambda5*R3C + lambda6*R4A + lambda7*R4B + lambda8*R4C
+
+SC_y2 ~~ 1*SC_y2
+SC_y2 ~ 1
+
+R6 ~ NA*1
+R5 ~ NA*1
+R3A ~ NA*1
+R3B ~ NA*1 
+R3C ~ NA*1
+R4A ~ NA*1
+R4B ~ NA*1 
+R4C ~ int8*1
+
+# Covariances between relational trust items
+R3A ~~ R3B + R3C + R4A + R4B + R4C 
+R3B ~~ R3C + R4A + R4B + R4C 
+R3C ~~ R4A + R4B + R4C 
+R4A ~~ R4B + R4C 
+R4B ~~ R4C
+
+SC_y3 =~ NA*S12A + lambda1*S12A + lambda2*S11 + lambda3*S9A + lambda4*S9B + lambda5*S9C + lambda6*S10A + lambda7*S10B + lambda8*S10C
+
+SC_y3 ~~ 1*SC_y3
+SC_y3 ~ 1
+
+S12A ~ NA*1
+S11 ~ NA*1
+S9A ~ NA*1
+S9B ~ NA*1 
+S9C ~ NA*1
+S10A ~ NA*1
+S10B ~ NA*1 
+S10C ~ int8*1
+
+# Covariances between relational trust items
+S9A ~~ S9B + S9C + S10A + S10B + S10C 
+S9B ~~ S9C + S10A + S10B + S10C 
+S9C ~~ S10A + S10B + S10C 
+S10A ~~ S10B + S10C 
+S10B ~~ S10C
+'
+
+covs <- '
+P6 ~~ Q11 + R6 + S12A
+Q11 ~~ R6 + S12A
+R6 ~~ S12A
+
+P5 ~~ Q10 + R5 + S11
+Q10 ~~ R5 + S11
+R5 ~~ S11
+
+P3A ~~ Q8A + R3A + S9A
+Q8A ~~ R3A + S9A
+R3A ~~ S9A
+
+P3B ~~ Q8B + R3B + S9B
+Q8B ~~ R3B + S9B
+R3B ~~ S9B
+
+P3C ~~ Q8C + R3C + S9C
+Q8C ~~ R3C + S9C
+R3C ~~ S9C
+
+P4A ~~ Q9A + R4A + S10A
+Q9A ~~ R4A + S10A
+R4A ~~ S10A
+
+P4B ~~ Q9B + R4B + S10B
+Q9B ~~ R4B + S10B
+R4B ~~ S10B
+
+P4C ~~ Q9C + R4C + S10C
+Q9C ~~ R4C + S10C
+R4C ~~ S10C
+
+SC_pre ~~ SC_y1 + SC_y2 + SC_y3
+SC_y1 ~~ SC_y2 + SC_y3
+SC_y2 ~~ SC_y3
+'
+#fit_meas_y3 <- sem(model = meas_mod_y3, data = FASTData, estimator = "ML", missing = "ML")
+#summary(fit_meas, fit.measures = T)
+
+strong <- paste(partial_strong_mod, covs)
+fit_strong <- sem(model = strong, data = FASTData, estimator = "ML", missing = "ML")
+
+summary(fit_strong)
+
+models <- c("Configural" = fit_configural, "Weak" = fit_weak, "Strong" = fit_strong)
+
+compareLavaan(models,
+              fitmeas = c("chisq", "df", "pvalue", "cfi", "rmsea", "srmr"), 
+              chidif = T,
+              nesting = "Configural > Weak > Strong", 
+              digits = 3)
+
+# library(semTools)
+# models <- list(fit.configural = fit_configural, fit.loadings = fit_weak, fit.intercepts = fit_strong)
+# partialInvariance(fit = models, type = "scalar")
+```
+
+```{r, warning = F}
+fit_strong <- sem(model = strong, data = FASTData, estimator = "ML", missing = "ML")
+fitMeasures(fit_strong, fit.measures = c("chisq", "df", "pvalue", "cfi", "rmsea", "srmr"))
+```
+
+## Model Invariance Comparisons
+
+```{r}
+models <- c("Configural" = fit_configural, "Weak" = fit_weak, "Strong" = fit_strong)
+
+compareLavaan(models,
+              fitmeas = c("chisq", "df", "pvalue", "cfi", "rmsea", "srmr"), 
+              chidif = T,
+              nesting = "Configural > Weak > Strong", 
+              digits = 3)
+```
+
+# Factor Scores
+
+## Creating and Merging Factor Scores to Dataset
+
+```{r, warning = F}
+fit_pre <- sem(model = meas_mod_pre, data = FASTData, estimator = "ML", missing = "ML")
+fit_y1 <- sem(model = meas_mod_y1, data = FASTData, estimator = "ML", missing = "ML")
+fit_y2 <- sem(model = meas_mod_y2, data = FASTData, estimator = "ML", missing = "ML")
+fit_y3 <- sem(model = meas_mod_y3, data = FASTData, estimator = "ML", missing = "ML")
+
+fitPredict <- as.data.frame(predict(fit_pre))
+FASTData <- cbind(FASTData, fitPredict)
+
+fitPredict2 <- as.data.frame(predict(fit_y1))
+FASTData <- cbind(FASTData, fitPredict2)
+
+fitPredict3 <- as.data.frame(predict(fit_y2))
+FASTData <- cbind(FASTData, fitPredict3)
+
+fitPredict4 <- as.data.frame(predict(fit_y3))
+FASTData <- cbind(FASTData, fitPredict4)
+```
+
+```{r, message = F, warning = F}
+FASTData_SC_FAST <- filter(FASTData, FAST == "FAST Program")
+FASTData_SC_FAST <- select(FASTData_SC_FAST, "SC_pre", "SC_y1", "SC_y2", "SC_y3")
+
+FASTData_SC_Cntrl <- filter(FASTData, FAST == "Control School")
+FASTData_SC_Cntrl <- select(FASTData_SC_Cntrl, "SC_pre", "SC_y1", "SC_y2", "SC_y3")
+
+p1 <- FASTData_SC_FAST[,1:4] |> 
+  pivot_longer(everything(), names_to = "vars") |>
+  ggplot(aes(x = value, fill = vars)) +
+  geom_density() + 
+  scale_y_continuous(limits = c(0, 0.8)) +
+  facet_wrap(~ vars, nrow = 4) +
+  labs(x = " FAST Program Social Capital Factor Score", y = "Density", 
+       title = "Density Plots of Social Capital Factor Scores,") +
+  theme_minimal() +
+  scale_fill_grey() +
+  theme(legend.position = "none")
+
+p2 <- FASTData_SC_Cntrl[,1:4] |> 
+  pivot_longer(everything(), names_to = "vars") |>
+  ggplot(aes(x = value, fill = vars)) +
+  geom_density() + 
+  scale_y_continuous(limits = c(0, 0.8)) +
+  facet_wrap(~ vars, nrow = 4) +
+  labs(x = "Control School Social Capital Factor Score", y = "Density", 
+       title = "") +
+  theme_minimal() +
+  scale_fill_grey() +
+  theme(axis.title.y = element_blank(), axis.text.y=element_blank(), legend.position = "none")
+
+p1 + p2
+```
+
+## Exporting Updated Dataset
+
+```{r}
+write.csv(FASTData, "/Users/jayjeffries/Desktop/Longitudinal/SEM/Assignments/Final Project/FAST SEM Project/FASTData_FS.csv", row.names = T)
+```
