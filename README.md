@@ -1,4 +1,5 @@
-# Unmasking Decaying Intervention Effects <br> Using Latent Change Score Modeling <img align="right" width="240" height="100" src="https://github.com/jjeffries13/APA_2023/blob/main/Images/APA-Logo-2019-Stacked-RGB.png"> <img align="right" width="130" height="100" src="https://github.com/jjeffries13/APA_2023/blob/main/Images/R-Nebraska_N-NEB-center-CMYK.jpg"> 
+# Unmasking Decaying Intervention Effects <br> Using Latent Change Score Modeling 
+<img align="right" width="240" height="100" src="https://github.com/jjeffries13/APA_2023/blob/main/Images/APA-Logo-2019-Stacked-RGB.png"> <img align="right" width="130" height="100" src="https://github.com/jjeffries13/APA_2023/blob/main/Images/R-Nebraska_N-NEB-center-CMYK.jpg"> 
 
 ### <img align="left" width="30" height="30" src="https://github.com/jjeffries13/APA_2023/blob/main/Images/4851855-200.png"> Jay Jeffries<sup>1</sup>
 <h5><sup>1</sup>University of Nebraska-Lincoln </h5>
