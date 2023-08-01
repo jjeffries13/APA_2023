@@ -19,7 +19,7 @@
 <img width="800" height="500" src="https://github.com/jjeffries13/APA_2023/blob/main/Images/FS_by_Time_plot.png?raw=true">
 </p>
 
-**Descriptives, model coefficients, and chi-square fit tables available in the [Code](https://github.com/jjeffries13/APA_2023/tree/main/Code) folder.**
+**Descriptives, model coefficients, and chi-square fit tables available in the Code folder found [here](https://github.com/jjeffries13/APA_2023/blob/main/Code/Tables.md).**
 
 ## Dataset
 ### Families and Schools Together (FAST) Public Use Data 
