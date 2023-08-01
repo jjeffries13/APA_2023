@@ -36,12 +36,6 @@ All code for this project are housed in an R project. Within this project, indiv
   * Measurement modeling scripts are available [here](https://github.com/jjeffries13/APA_2023/blob/main/Code/Measurement_Models.Rmd)
   * Structural modeling scripts are available [here](https://github.com/jjeffries13/APA_2023/blob/main/Code/Structural_Models.Rmd)
 
-**Table 1**
-*Descriptives Table*
-
-**Table 2**
-*Social Capital Measurement Models*
-
 ## References
 
 Coleman, J. S. (1988). Social capital in the creation of human capital. American Journal of Sociology, 94, S95-S120.
