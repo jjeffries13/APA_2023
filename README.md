@@ -43,3 +43,17 @@ All code for this project are housed in an R project. Within this project, indiv
 *Social Capital Measurement Models*
 
 ## References
+
+Coleman, J. S. (1988). Social capital in the creation of human capital. American Journal of Sociology, 94, S95-S120.
+
+Gamoran, A. (2015). Social capital and children's development: A randomized controlled trial conducted in 52 schools in Phoenix and San Antonio, 2008-2013. Inter-university Consortium for Political and Social Research.
+
+Hu, L., & Bentler, P. M. (1999). Cutoff criteria for fit indexes in covariance structure analysis:  Conventional criteria versus new alternatives. Structural Equation Modeling: A Multidisciplinary Journal, 6, 1–55.
+
+MacCallum, R. C., Browne, M. W., & Sugawara, H. M. (1996). Power analysis and  determination of sample size for covariance structure modeling. Psychological Methods, 1, 130-149.
+
+McArdle, J. J. (2001). A Latent Difference Score Approach to Longitudinal Dynamic Structural Analysis. In R. Cudeck, S. du Toit, & D. Sorbom (Eds.), Structural Equation Modeling: Present and Future. A Festschrift in Honor of Karl Joreskog (pp. 341-380). Lincolnwood, IL: Scientific Software International.
+
+R Core Team (2022). R: A language and environment for statistical computing. R Foundation for Statistical Computing, Vienna, Austria. URL https://www.R-project.org/.
+
+Rosseel, Y. (2012). lavaan: An R Package for Structural Equation Modeling. Journal of  Statistical Software, 48(2), 1-36.
