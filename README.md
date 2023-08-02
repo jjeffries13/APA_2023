@@ -19,10 +19,33 @@
 <img width="800" height="500" src="https://github.com/jjeffries13/APA_2023/blob/main/Images/FS_by_Time_plot.png?raw=true">
 </p>
 
-**Descriptives, model coefficients, and chi-square fit tables available in the Code folder found [here](https://github.com/jjeffries13/APA_2023/blob/main/Code/Tables.md).**
+Descriptives, model coefficients, and chi-square fit tables available in the **Code folder**, otherwise found **[here](https://github.com/jjeffries13/APA_2023/blob/main/Code/Tables.md)**.
+
+**[Here](https://github.com/jjeffries13/APA_2023/blob/main/Images/Jeffries_APA2023.pdf)** is the link to my poster .pdf file.
+
+## Program
+### Families and Schools Together (FAST)
+
+FAST core activities:
+- Family Flags and Family Hellos
+- Family Meals
+- Family Music
+- Family Communication Games (Scribbles, Charades, Connections)
+- Kids' Time
+- Parents' Time
+- One-to-One Time: Middle school/Special Play: Elementary school 
+- Lottery
+- Serious Family Communication (Topics: e.g. Substance Abuse, Violence and Delinquency; School Failure)
+- Closing Circle and Rain
+- Family Graduation
+
+**FAST Program Timeline**
+<p align = "center">
+<img width="850" height="250" src="https://github.com/jjeffries13/APA_2023/blob/main/Images/FAST_gantt_chart.png?raw=true">
+</p>
 
 ## Dataset
-### Families and Schools Together (FAST) Public Use Data 
+### FAST Public Use Data 
 * Data collected in 2008-2013 by Gamoran (2019) from the University of Wisconsin-Madison
 * Data available via the Inter-University Consortium for Political and Social Research
   * [Link](https://www.icpsr.umich.edu/web/DSDR/studies/35481/summary) to original data site
