@@ -41,7 +41,7 @@ FAST core activities:
 
 **FAST Program Timeline**
 <p align = "center">
-<img width="850" height="250" src="https://github.com/jjeffries13/APA_2023/blob/main/Images/FAST_gantt_chart.png?raw=true">
+<img width="850" height="200" src="https://github.com/jjeffries13/APA_2023/blob/main/Images/FAST_gantt_chart.png?raw=true">
 </p>
 
 ## Dataset
